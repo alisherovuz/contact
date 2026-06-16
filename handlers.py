@@ -16,12 +16,12 @@ class AppealState(StatesGroup):
     waiting_for_direction = State()
     waiting_for_appeal = State()
 
-# List of directions
+# List of directions in Latin
 DIRECTIONS = [
-    "Спин-офф", "Стартап", "Лойиҳа топшириш", "Танловда иштирок этиш",
-    "Ёшлар технопарклари", "Инновацион туманлар", "Тижоратлаштириш лойиҳалари",
-    "Патент олиш", "Ҳамкорлик қилиш", "Хорижий грантлар", "Хорижий стажировка",
-    "Мустақил изланувчилик", "Олий таълимдан кейинги таълим", "Бошқа"
+    "Spin-off", "Startap", "Loyiha topshirish", "Tanlovda ishtirok etish",
+    "Yoshlar texnoparklari", "Innovatsion tumanlar", "Tijoratlashtirish loyihalari",
+    "Patent olish", "Hamkorlik qilish", "Xorijiy grantlar", "Xorijiy stajirovka",
+    "Mustaqil izlanuvchilik", "Oliy ta'limdan keyingi ta'lim", "Boshqa"
 ]
 
 def get_directions_keyboard():
@@ -41,8 +41,8 @@ def get_directions_keyboard():
 @router.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext):
     await message.answer(
-        "Инновацион ривожланиш агентлиги директорига мурожаат йўлланг\n\n"
-        "Исм Фамилиянгиз:"
+        "Innovatsion rivojlanish agentligi direktoriga murojaat yo'llang\n\n"
+        "Ism Familiyangiz:"
     )
     await state.set_state(AppealState.waiting_for_name)
 
@@ -52,10 +52,10 @@ async def process_name(message: Message, state: FSMContext):
     await state.update_data(name=message.text)
     
     # Request contact button
-    contact_btn = KeyboardButton(text="📞 Рақамни юбориш", request_contact=True)
+    contact_btn = KeyboardButton(text="📞 Raqamni yuborish", request_contact=True)
     keyboard = ReplyKeyboardMarkup(keyboard=[[contact_btn]], resize_keyboard=True, one_time_keyboard=True)
     
-    await message.answer("Телефон рақамингиз:", reply_markup=keyboard)
+    await message.answer("Telefon raqamingiz:", reply_markup=keyboard)
     await state.set_state(AppealState.waiting_for_phone)
 
 
@@ -66,7 +66,7 @@ async def process_phone(message: Message, state: FSMContext):
     elif message.text:
         phone = message.text
     else:
-        await message.answer("Илтимос, телефон рақамингизни матн сифатида киритинг ёки тугмани босинг.")
+        await message.answer("Iltimos, telefon raqamingizni matn sifatida kiriting yoki tugmani bosing.")
         return
 
     await state.update_data(phone=phone)
@@ -76,12 +76,12 @@ async def process_phone(message: Message, state: FSMContext):
     remove_kb = ReplyKeyboardRemove()
     
     await message.answer(
-        "Йўналишни танланг:",
+        "Yo'nalishni tanlang:",
         reply_markup=remove_kb
     )
     # Send another message with the inline keyboard
     await message.answer(
-        "Рўйхатдан мос йўналишни танланг:",
+        "Ro'yxatdan mos yo'nalishni tanlang:",
         reply_markup=get_directions_keyboard()
     )
     await state.set_state(AppealState.waiting_for_direction)
@@ -95,9 +95,9 @@ async def process_direction(callback: CallbackQuery, state: FSMContext):
     await state.update_data(direction=direction_text)
     
     # Edit the message to show what was selected
-    await callback.message.edit_text(f"Танланган йўналиш: {direction_text}")
+    await callback.message.edit_text(f"Tanlangan yo'nalish: {direction_text}")
     
-    await callback.message.answer("Мурожаатингизни ёзма шаклда киритинг:")
+    await callback.message.answer("Murojaatingizni yozma shaklda kiriting:")
     await state.set_state(AppealState.waiting_for_appeal)
     await callback.answer()
 
@@ -114,12 +114,12 @@ async def process_appeal(message: Message, state: FSMContext):
     
     # Construct the message for admin
     admin_msg = (
-        f"📝 <b>Янги мурожаат</b>\n\n"
-        f"👤 <b>Исм:</b> {name}\n"
-        f"📞 <b>Телефон:</b> {phone}\n"
-        f"📂 <b>Йўналиш:</b> {direction}\n"
+        f"📝 <b>Yangi murojaat</b>\n\n"
+        f"👤 <b>Ism:</b> {name}\n"
+        f"📞 <b>Telefon:</b> {phone}\n"
+        f"📂 <b>Yo'nalish:</b> {direction}\n"
         f"🆔 <b>User ID:</b> {user_id}\n\n"
-        f"💬 <b>Мурожаат:</b>\n{appeal_text}"
+        f"💬 <b>Murojaat:</b>\n{appeal_text}"
     )
     
     success = False
@@ -131,9 +131,9 @@ async def process_appeal(message: Message, state: FSMContext):
             print(f"Error sending message to admin {admin_id}: {e}")
             
     if success:
-        await message.answer("Мурожаатингиз муваффақиятли юборилди! Тез орада сизга жавоб берилади.")
+        await message.answer("Murojaatingiz muvaffaqiyatli yuborildi! Tez orada sizga javob beriladi.")
     else:
-        await message.answer("Узр, хатолик юз берди ва мурожаатингиз юборилмади. Кейинроқ қайта уриниб кўринг.")
+        await message.answer("Uzr, xatolik yuz berdi va murojaatingiz yuborilmadi. Keyinroq qayta urinib ko'ring.")
     
     await state.clear()
 
@@ -153,21 +153,20 @@ async def admin_reply(message: Message):
         # Admin's reply content
         reply_text = message.text
         if not reply_text:
-            reply_text = "Медиа файл ёки ҳужжат қабул қилинди." # Basic fallback if media is sent
+            reply_text = "Media fayl yoki hujjat qabul qilindi." # Basic fallback if media is sent
             
-        notification = f"Агентликдан жавоб:\n\n{reply_text}"
+        notification = f"Agentlikdan javob:\n\n{reply_text}"
         
         try:
             # We can also forward media if the admin sends media instead of text
             if message.photo or message.document or message.video or message.audio or message.voice:
                 await message.copy_to(chat_id=user_id)
                 # Send the "Answer from agency" prefix text separately if needed, or rely on copy_to
-                await message.bot.send_message(chat_id=user_id, text="Агентликдан юқоридаги файл(лар)/жавоб юборилди.")
+                await message.bot.send_message(chat_id=user_id, text="Agentlikdan yuqoridagi fayl(lar)/javob yuborildi.")
             else:
                 await message.bot.send_message(chat_id=user_id, text=notification)
                 
-            await message.reply("Сизнинг жавобингиз фойдаланувчига юборилди!")
+            await message.reply("Sizning javobingiz foydalanuvchiga yuborildi!")
         except Exception as e:
             print(f"Failed to send reply to user {user_id}: {e}")
-            await message.reply(f"Жавоб юборишда хатолик юз берди. Фойдаланувчи ботни блоклаган бўлиши мумкин. Хато: {e}")
-
+            await message.reply(f"Javob yuborishda xatolik yuz berdi. Foydalanuvchi botni bloklagan bo'lishi mumkin. Xato: {e}")
