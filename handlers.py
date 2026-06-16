@@ -25,17 +25,15 @@ DIRECTIONS = [
 ]
 
 def get_directions_keyboard():
-    # Build inline keyboard for the 14 options (e.g. 2 buttons per row)
+    # Build reply keyboard for the 14 options (2 buttons per row)
     keyboard = []
     row = []
     for i, direction in enumerate(DIRECTIONS, start=1):
-        button_text = f"{i}. {direction}"
-        callback_data = f"dir_{i-1}"
-        row.append(InlineKeyboardButton(text=button_text, callback_data=callback_data))
+        row.append(KeyboardButton(text=direction))
         if len(row) == 2 or i == len(DIRECTIONS):
             keyboard.append(row)
             row = []
-    return InlineKeyboardMarkup(inline_keyboard=keyboard)
+    return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True, one_time_keyboard=True)
 
 
 @router.message(CommandStart())
@@ -71,15 +69,7 @@ async def process_phone(message: Message, state: FSMContext):
 
     await state.update_data(phone=phone)
     
-    # Next step: direction with inline keyboard
-    # Remove the reply keyboard
-    remove_kb = ReplyKeyboardRemove()
-    
-    await message.answer(
-        "Yo'nalishni tanlang:",
-        reply_markup=remove_kb
-    )
-    # Send another message with the inline keyboard
+    # Next step: direction with reply keyboard
     await message.answer(
         "Ro'yxatdan mos yo'nalishni tanlang:",
         reply_markup=get_directions_keyboard()
@@ -87,19 +77,22 @@ async def process_phone(message: Message, state: FSMContext):
     await state.set_state(AppealState.waiting_for_direction)
 
 
-@router.callback_query(AppealState.waiting_for_direction, F.data.startswith("dir_"))
-async def process_direction(callback: CallbackQuery, state: FSMContext):
-    direction_idx = int(callback.data.split("_")[1])
-    direction_text = DIRECTIONS[direction_idx]
+@router.message(AppealState.waiting_for_direction, F.text.in_(DIRECTIONS))
+async def process_direction(message: Message, state: FSMContext):
+    direction_text = message.text
     
     await state.update_data(direction=direction_text)
     
-    # Edit the message to show what was selected
-    await callback.message.edit_text(f"Tanlangan yo'nalish: {direction_text}")
-    
-    await callback.message.answer("Murojaatingizni yozma shaklda kiriting:")
+    await message.answer(
+        "Murojaatingizni yozma shaklda kiriting:",
+        reply_markup=ReplyKeyboardRemove()
+    )
     await state.set_state(AppealState.waiting_for_appeal)
-    await callback.answer()
+
+
+@router.message(AppealState.waiting_for_direction)
+async def process_direction_invalid(message: Message):
+    await message.answer("Iltimos, pastdagi tugmalardan birini tanlang.", reply_markup=get_directions_keyboard())
 
 
 @router.message(AppealState.waiting_for_appeal, F.text)
