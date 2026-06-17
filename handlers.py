@@ -40,7 +40,7 @@ def get_directions_keyboard():
 async def cmd_start(message: Message, state: FSMContext):
     await message.answer(
         "Innovatsion rivojlanish agentligi direktoriga murojaat yo'llang\n\n"
-        "Ism Familiyangiz:"
+        "Ism-familiyangiz:"
     )
     await state.set_state(AppealState.waiting_for_name)
 
@@ -108,7 +108,7 @@ async def process_appeal(message: Message, state: FSMContext):
     # Construct the message for admin
     admin_msg = (
         f"📝 <b>Yangi murojaat</b>\n\n"
-        f"👤 <b>Ism:</b> {name}\n"
+        f"👤 <b>Ism-familiya:</b> {name}\n"
         f"📞 <b>Telefon:</b> {phone}\n"
         f"📂 <b>Yo'nalish:</b> {direction}\n"
         f"🆔 <b>User ID:</b> {user_id}\n\n"
